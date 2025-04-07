@@ -1,6 +1,6 @@
 # Used-Car-Data-Mining
 
-Welcome to the Data Mining project revolving around the Craig's List based used-car dataset. The goal of this project is to predict the price listed vehicles.
+Welcome to the Data Mining project revolving around the Craig's List based used-car dataset. The goal of this project is to predict the price of listed vehicles.
 
 ## Datset
 
