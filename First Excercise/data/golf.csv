@@ -1,0 +1,16 @@
+Outlook,Humidity,Wind,Temperature C,Temperature F,Play
+sunny,85.0,False,29.5,85.0,False
+sunny,90.0,True,26.5,80.0,False
+overcast,78.0,False,28.5,83.0,True
+rain,96.0,False,21.0,70.0,True
+rain,80.0,False,20.0,68.0,True
+rain,70.0,True,18.5,65.0,False
+overcast,65.0,True,18.0,64.0,True
+sunny,95.0,False,22.0,72.0,False
+sunny,70.0,False,20.5,69.0,True
+rain,80.0,False,24.0,75.0,True
+sunny,70.0,True,24.0,75.0,True
+overcast,90.0,True,22.0,72.0,True
+overcast,75.0,False,27.0,81.0,True
+rain,80.0,True,21.5,71.0,False
+sunny,75.0,,26.5,80.0,True
