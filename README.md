@@ -26,6 +26,12 @@ We provide a script to automatically pull the dataset from Google Drive using th
 
 ##### Prerequisites:
 
+- Install the following dependencies (or look at requirements.txt):
+
+```bash
+pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client httplib2
+```
+
 - `credentials.json` file must be present in the project directory.
 - The file is shared via Google Drive and should **not be committed to Git**.
   ===> Make sure to keep credentials.json in .gitignore
