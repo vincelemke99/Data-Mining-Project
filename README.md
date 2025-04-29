@@ -15,26 +15,31 @@ There are two ways to access the dataset:
 
 #### **Option 1: Manual Download**
 
-1. Log in to the **team Google account** provided by the project lead.
-2. Navigate to the shared folder named `Project Dataset`.
-3. Download the dataset file (e.g., `craigslist_vehicles.csv`) to your local machine.
+1. Log in to the **team Google account (team.dataset@gmail.com)**.
+2. Navigate to the shared folder named `used-car-data-mining-project`.
+3. Download the dataset file (e.g., `vehicles.csv`) to your computer.
 4. Move the file into the `data/` directory of this project.
 
 #### **Option 2: Use the Python Script**
 
-We provide a script to automatically pull the dataset from Google Drive using the Drive API.
+We provide a script to automatically pull the dataset from Google Drive using the Google Drive API.
 
 ##### Prerequisites:
 
 - `credentials.json` file must be present in the project directory.
 - The file is shared via Google Drive and should **not be committed to Git**.
+  ===> Make sure to keep credentials.json in .gitignore
 
 ##### Setup:
 
 1. Download `credentials.json` from the shared Google Drive folder.
 2. Place it in the root directory of this project
-3. Run the script to download the dataset:
+3. Run the script, which is in the data, to download the dataset:
 
 ```bash
-python fetch_dataset.py
+python data/fetch_dataset.py
 ```
+
+##### Reminder
+
+The Google Drive only has 15 GB of FREE storage space. The upload function in the script can be used to upload files to the drive.
