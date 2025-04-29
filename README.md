@@ -42,4 +42,4 @@ python data/fetch_dataset.py
 
 ##### Reminder
 
-The Google Drive only has 15 GB of FREE storage space. The upload function in the script can be used to upload files to the drive.
+The Google Drive only has 15 GB of FREE storage space. The upload function in the script can be used to NEW upload files to the drive.
