@@ -40,12 +40,14 @@ pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-pyt
 
 1. Download `credentials.json` from the shared Google Drive folder.
 2. Place it in the root directory of this project
-3. Run the script, which is in the data, to download the dataset:
+3. Run the script, which is in the root directory, to download the dataset:
 
 ```bash
-python data/fetch_dataset.py
+python gdrive_pull_push.py
 ```
 
 ##### Reminder
 
 The Google Drive only has 15 GB of FREE storage space. The upload function in the script can be used to NEW upload files to the drive.
+
+##### FAQ
