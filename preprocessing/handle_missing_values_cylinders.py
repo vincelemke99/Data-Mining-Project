@@ -245,32 +245,43 @@ def impute_strong_patterns(df_imputed):
 
 df_imputed = impute_strong_patterns(df_imputed)
 
+df_imputed['cylinders'] = df_imputed['cylinders'].fillna('missing')
+print("\nCylinder value counts after labeling remaining NaNs as 'missing':")
+print(df_imputed['cylinders'].value_counts(dropna=False))
+"""""
+Most likely, we will use KNN imputation instead of dropping the entire Row
+
+# 
 # 6. Drop any rows where 'cylinders' is still missing
 rows_before_drop = len(df_imputed)
 df_imputed = df_imputed.dropna(subset=['cylinders'])
 rows_after_drop = len(df_imputed)
 rows_dropped = rows_before_drop - rows_after_drop
 
+
+
 print(f"\nDropped {rows_dropped:,} rows with remaining missing cylinder values")
 print(f"Final dataset size: {rows_after_drop:,} rows")
-
+"""
 # Print cylinder value counts after imputation
-print("\nCylinder value counts after imputation (including 'other'):")
+print("\nCylinder value counts after imputation :")
 print(df_imputed['cylinders'].value_counts(dropna=False))
 
 # Final summary
-remaining_missing = df_imputed[df_imputed['cylinders'].isna()]
 total_rows = len(df_imputed)
-remaining_nan = len(remaining_missing)
+remaining_missing = (df_imputed['cylinders'] == 'missing').sum()
 
 print("\n=== Final Imputation Summary ===")
 print(f"Initial missing values: {initial_missing:,} ({(initial_missing/len(df)*100):.2f}%)")
-print(f"Final missing values: {remaining_nan:,} ({(remaining_nan/total_rows*100):.2f}%)")
+print(f"Final 'missing' labels: {remaining_missing:,} ({(remaining_missing/total_rows*100):.2f}%)")
 print(f"\nImputation methods used:")
 print(df_imputed['imputation_method'].value_counts())
 
-print("\n=== Detailed Analysis of Remaining Missing Values ===")
-print(f"\nTotal missing values: {remaining_nan:,} ({(remaining_nan/total_rows*100):.2f}%)")
+print("\n=== Detailed Analysis of Remaining 'missing' Labels ===")
+print(f"\nTotal 'missing' labels: {remaining_missing:,} ({(remaining_missing/total_rows*100):.2f}%)")
+
+# Select rows labeled as 'missing' in cylinders
+remaining_missing = df_imputed[df_imputed['cylinders'] == 'missing']
 
 # Analyze by manufacturer
 print("\nMissing values by manufacturer:")
@@ -293,7 +304,7 @@ print("\nSample of model names with missing cylinders (after filtering):")
 print(remaining_missing['model'].value_counts().head(10))
 
 # Print cylinder value counts after imputation
-print("\nCylinder value counts after imputation (including 'other'):")
+print("\nCylinder value counts after imputation (including 'other' and 'missing'):")
 print(df_imputed['cylinders'].value_counts(dropna=False))
 
 # Step 5: Investigate and handle the 'other' category in cylinders
