@@ -248,206 +248,73 @@ df_imputed = impute_strong_patterns(df_imputed)
 df_imputed['cylinders'] = df_imputed['cylinders'].fillna('missing')
 print("\nCylinder value counts after labeling remaining NaNs as 'missing':")
 print(df_imputed['cylinders'].value_counts(dropna=False))
-"""""
-Most likely, we will use KNN imputation instead of dropping the entire Row
 
-# 
-# 6. Drop any rows where 'cylinders' is still missing
-rows_before_drop = len(df_imputed)
-df_imputed = df_imputed.dropna(subset=['cylinders'])
-rows_after_drop = len(df_imputed)
-rows_dropped = rows_before_drop - rows_after_drop
+# After targeted imputation and profiling, drop non-vehicle 'other' rows
+non_vehicle_keywords = [
+    'finance', 'program', 'special', 'bad credit', 'trailer', 'carry on trailer',
+    'rack', 'shasta', 'jayco', 'avenger', 'credit', '0k', 'plymouth valiant',
+    'parts', 'accessory', 'kit', 'package', 'warranty', 'service', 'maintenance',
+    'insurance', 'loan', 'lease', 'rental', 'fleet', 'commercial', 'business'
+]
+mask_non_vehicle_other = (
+    (df_imputed['cylinders'] == 'other') &
+    (
+        df_imputed['manufacturer'].str.lower().str.contains('|'.join(non_vehicle_keywords), na=False) |
+        df_imputed['model'].str.lower().str.contains('|'.join(non_vehicle_keywords), na=False) |
+        df_imputed['type'].str.lower().str.contains('|'.join(non_vehicle_keywords), na=False)
+    )
+)
+df_imputed = df_imputed[~mask_non_vehicle_other]
 
+# Convert remaining 'other' to 'missing' for imputation
+other_mask = df_imputed['cylinders'] == 'other'
+df_imputed.loc[other_mask, 'cylinders'] = 'missing'
+df_imputed.loc[other_mask, 'imputation_method'] = 'set_from_other'
 
+# Median imputation (type-based, then overall)
+type_medians = df_imputed[df_imputed['cylinders'] != 'missing'].groupby('type')['cylinders'].median().to_dict()
+missing_mask = df_imputed['cylinders'] == 'missing'
+for type_val, median_val in type_medians.items():
+    type_mask = (df_imputed['type'] == type_val) & missing_mask
+    if type_mask.any():
+        df_imputed.loc[type_mask, 'cylinders'] = int(median_val)
+        df_imputed.loc[type_mask, 'imputation_method'] = 'type_median'
+        print(f"Imputed {type_mask.sum()} values for type '{type_val}' with median {int(median_val)}")
 
-print(f"\nDropped {rows_dropped:,} rows with remaining missing cylinder values")
-print(f"Final dataset size: {rows_after_drop:,} rows")
-"""
-# Print cylinder value counts after imputation
-print("\nCylinder value counts after imputation :")
+# For any remaining, use overall median
+remaining_mask = df_imputed['cylinders'] == 'missing'
+if remaining_mask.any():
+    overall_median = int(df_imputed[df_imputed['cylinders'] != 'missing']['cylinders'].median())
+    df_imputed.loc[remaining_mask, 'cylinders'] = overall_median
+    df_imputed.loc[remaining_mask, 'imputation_method'] = 'overall_median'
+    print(f"Imputed {remaining_mask.sum()} remaining values with overall median {overall_median}")
+
+# Print value counts after imputation
+print("\nCylinder value counts after median imputation:")
 print(df_imputed['cylinders'].value_counts(dropna=False))
+
+# Only print missing analysis if any remain
+missing_rows = df_imputed[df_imputed['cylinders'] == 'missing']
+if len(missing_rows) > 0:
+    print("\n=== Analysis of 'missing' Values ===")
+    print(f"Total 'missing' values: {len(missing_rows):,}")
+    print("\nMissing values by manufacturer (top 10):")
+    print(missing_rows['manufacturer'].value_counts().head(10))
+    print("\nMissing values by type:")
+    print(missing_rows['type'].value_counts())
+    print("\nMissing values by fuel type:")
+    print(missing_rows['fuel'].value_counts())
+    print("\nMissing values by year (top 10):")
+    print(missing_rows['year'].value_counts().sort_index().tail(10))
+
+# Save the dataset
+output_path = "Project/data/vehicles_cylinders_median_imputed.csv"
+df_imputed.to_csv(output_path, index=False)
+print(f"\nSaved dataset to {output_path}")
 
 # Final summary
-total_rows = len(df_imputed)
-remaining_missing = (df_imputed['cylinders'] == 'missing').sum()
-
-print("\n=== Final Imputation Summary ===")
-print(f"Initial missing values: {initial_missing:,} ({(initial_missing/len(df)*100):.2f}%)")
-print(f"Final 'missing' labels: {remaining_missing:,} ({(remaining_missing/total_rows*100):.2f}%)")
-print(f"\nImputation methods used:")
-print(df_imputed['imputation_method'].value_counts())
-
-print("\n=== Detailed Analysis of Remaining 'missing' Labels ===")
-print(f"\nTotal 'missing' labels: {remaining_missing:,} ({(remaining_missing/total_rows*100):.2f}%)")
-
-# Select rows labeled as 'missing' in cylinders
-remaining_missing = df_imputed[df_imputed['cylinders'] == 'missing']
-
-# Analyze by manufacturer
-print("\nMissing values by manufacturer:")
-print(remaining_missing['manufacturer'].value_counts().head(10))
-
-# Analyze by vehicle type
-print("\nMissing values by vehicle type:")
-print(remaining_missing['type'].value_counts().head(10))
-
-# Analyze by fuel type
-print("\nMissing values by fuel type:")
-print(remaining_missing['fuel'].value_counts().head(10))
-
-# Analyze by year
-print("\nMissing values by year (top 10 years):")
-print(remaining_missing['year'].value_counts().sort_index().tail(10))
-
-# Check for patterns in model names
-print("\nSample of model names with missing cylinders (after filtering):")
-print(remaining_missing['model'].value_counts().head(10))
-
-# Print cylinder value counts after imputation
-print("\nCylinder value counts after imputation (including 'other' and 'missing'):")
-print(df_imputed['cylinders'].value_counts(dropna=False))
-
-# Step 5: Investigate and handle the 'other' category in cylinders
-
-# 1. Profile the 'other' category
-other_rows = df_imputed[df_imputed['cylinders'] == 'other']
-print(f"\nNumber of rows with 'other' in cylinders: {len(other_rows)}")
-
-print("\nTop 20 models for 'other' cylinders:")
-print(other_rows['model'].value_counts().head(20))
-
-print("\nTop 10 manufacturers for 'other' cylinders:")
-print(other_rows['manufacturer'].value_counts().head(10))
-
-print("\nValue counts for 'type' in 'other' cylinders:")
-print(other_rows['type'].value_counts())
-
-print("\nValue counts for 'fuel' in 'other' cylinders:")
-print(other_rows['fuel'].value_counts())
-
-print("\nValue counts for 'year' in 'other' cylinders:")
-print(other_rows['year'].value_counts().head(20))
-
-print("\nSample rows with 'other' in cylinders:")
-print(other_rows[['manufacturer', 'model', 'year', 'fuel', 'type']].head(20))
-
-print("\nCrosstab: Model vs. Fuel for 'other' cylinders:")
-print(pd.crosstab(other_rows['model'], other_rows['fuel']).head(20))
-
-print("\nCrosstab: Model vs. Type for 'other' cylinders:")
-print(pd.crosstab(other_rows['model'], other_rows['type']).head(20))
-
-print("\nCrosstab: Manufacturer vs. Type for 'other' cylinders:")
-print(pd.crosstab(other_rows['manufacturer'], other_rows['type']).head(20))
-
-# 2. Drop non-vehicle entries in the 'other' group
-non_vehicle_keywords = ['finance', 'program', 'special']
-mask_non_vehicle = (
-    (df_imputed['cylinders'] == 'other') &
-    (df_imputed['model'].str.lower().str.contains('|'.join(non_vehicle_keywords), na=False))
-)
-df_imputed = df_imputed[~mask_non_vehicle]
-
-# 3. Assign 0 cylinders to all electric vehicles in the 'other' group
-mask_other_electric = (df_imputed['cylinders'] == 'other') & (df_imputed['fuel'].str.lower() == 'electric')
-df_imputed.loc[mask_other_electric, 'cylinders'] = 0
-df_imputed.loc[mask_other_electric, 'imputation_method'] = 'other_electric'
-
-# 4. Re-profile the 'other' category after cleaning
-other_rows_cleaned = df_imputed[df_imputed['cylinders'] == 'other']
-print(f"\nNumber of rows with 'other' in cylinders after cleaning: {len(other_rows_cleaned)}")
-
-print("\nTop 20 models for 'other' cylinders after cleaning:")
-print(other_rows_cleaned['model'].value_counts().head(20))
-
-print("\nTop 10 manufacturers for 'other' cylinders after cleaning:")
-print(other_rows_cleaned['manufacturer'].value_counts().head(10))
-
-print("\nValue counts for 'type' in 'other' cylinders after cleaning:")
-print(other_rows_cleaned['type'].value_counts())
-
-print("\nValue counts for 'fuel' in 'other' cylinders after cleaning:")
-print(other_rows_cleaned['fuel'].value_counts())
-
-print("\nValue counts for 'year' in 'other' cylinders after cleaning:")
-print(other_rows_cleaned['year'].value_counts().head(20))
-
-print("\nSample rows with 'other' in cylinders after cleaning:")
-print(other_rows_cleaned[['manufacturer', 'model', 'year', 'fuel', 'type']].head(20))
-
-# Step 6: Further cleaning and targeted imputation of 'other' in cylinders
-# In this step, we address remaining ambiguous 'other' values in the 'cylinders' column using a conservative, data-driven approach:
-#   - For each (model, fuel) combination in 'other', if there are at least 10 known numeric cylinder values and at least 80% of them agree (i.e., the mode covers 80%+), we impute the mode value for 'cylinders'.
-#   - This ensures that imputation is only performed when there is a strong, reliable pattern in the data, minimizing the risk of introducing bias or error.
-#   - Any remaining 'other' values after this step are considered too ambiguous or rare to impute and are left as is (or flagged/dropped in subsequent steps).
-#   - This approach is analogous to the strong-pattern imputation logic used for commercial vehicles in previous steps, but is applied more broadly to all (model, fuel) combinations.
-#   - The thresholds (min 10 known, 80%+ agreement) are chosen to balance completeness with accuracy and transparency.
-
-# 1. Remove any remaining non-vehicle entries in the 'other' group
-non_vehicle_keywords = [
-    'finance', 'program', 'special', 'bad credit', 'trailer', 'carry on trailer', 'rack', 'shasta', 'jayco', 'avenger', 'credit', '0k', 'plymouth valiant'
-]
-mask_non_vehicle = (
-    (df_imputed['cylinders'] == 'other') &
-    (df_imputed['model'].str.lower().str.contains('|'.join(non_vehicle_keywords), na=False))
-)
-df_imputed = df_imputed[~mask_non_vehicle]
-
-# 2. Targeted imputation for 'other' where strong patterns exist
-# For each (model, fuel) combo in 'other', if there are at least 10 known numeric values and 80%+ are the same, impute that value
-other_rows = df_imputed[df_imputed['cylinders'] == 'other']
-for model in other_rows['model'].dropna().unique():
-    for fuel in other_rows['fuel'].dropna().unique():
-        known = df_imputed[
-            (df_imputed['model'] == model) &
-            (df_imputed['fuel'] == fuel) &
-            (df_imputed['cylinders'] != 'other')
-        ]['cylinders']
-        if len(known) >= 10:
-            mode_val = known.mode()
-            if len(mode_val) == 1 and (known.value_counts().iloc[0] / len(known)) >= 0.8:
-                mask = (
-                    (df_imputed['model'] == model) &
-                    (df_imputed['fuel'] == fuel) &
-                    (df_imputed['cylinders'] == 'other')
-                )
-                df_imputed.loc[mask, 'cylinders'] = mode_val.iloc[0]
-                df_imputed.loc[mask, 'imputation_method'] = 'other_strong_pattern'
-                print(f"Imputed {mask.sum()} 'other' values for model '{model}' and fuel '{fuel}' with {mode_val.iloc[0]}")
-
-# 3. Profile the 'other' category after further cleaning/imputation
-other_rows_final = df_imputed[df_imputed['cylinders'] == 'other']
-print(f"\nNumber of rows with 'other' in cylinders after further cleaning/imputation: {len(other_rows_final)}")
-print("\nTop 20 models for 'other' cylinders after further cleaning/imputation:")
-print(other_rows_final['model'].value_counts().head(20))
-print("\nTop 10 manufacturers for 'other' cylinders after further cleaning/imputation:")
-print(other_rows_final['manufacturer'].value_counts().head(10))
-print("\nValue counts for 'type' in 'other' cylinders after further cleaning/imputation:")
-print(other_rows_final['type'].value_counts())
-print("\nValue counts for 'fuel' in 'other' cylinders after further cleaning/imputation:")
-print(other_rows_final['fuel'].value_counts())
-print("\nValue counts for 'year' in 'other' cylinders after further cleaning/imputation:")
-print(other_rows_final['year'].value_counts().head(20))
-print("\nSample rows with 'other' in cylinders after further cleaning/imputation:")
-print(other_rows_final[['manufacturer', 'model', 'year', 'fuel', 'type']].head(20))
-
-# Step 7: Drop all rows where cylinders is 'other'
-# After all data-driven imputation steps (requiring at least 10 known values and 80%+ agreement for strong patterns),
-# any remaining 'other' values in the 'cylinders' column are considered too ambiguous or rare to impute reliably.
-# We drop these rows to ensure the 'cylinders' column is fully numeric and high-quality for downstream analysis.
-# This avoids introducing bias from speculative guesses and ensures the workflow remains transparent and reproducible.
-# The number of rows dropped and the new dataset size are reported for transparency.
-rows_before = len(df_imputed)
-df_imputed = df_imputed[df_imputed['cylinders'] != 'other']
-rows_after = len(df_imputed)
-print(f"\nDropped {rows_before - rows_after} rows where cylinders was 'other'.")
-print(f"Final dataset size: {rows_after}")
-
-print("\nCylinder value counts after dropping 'other':")
-print(df_imputed['cylinders'].value_counts(dropna=False))
-
-# Save the fully cleaned and imputed dataset to CSV
-output_path = "Project/data/vehicles_cylinders_cleaned.csv"
-df_imputed.to_csv(output_path, index=False)
-print(f"\nSaved cleaned dataset to {output_path}")
-
+print("\n=== Final Summary ===")
+print(f"Total rows in dataset: {len(df_imputed)}")
+print("All rows preserved with median imputation")
+print("\nDistribution of cylinder values:")
+print(df_imputed['cylinders'].value_counts().sort_index()) 
