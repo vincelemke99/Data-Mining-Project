@@ -42,13 +42,18 @@ def upload_file(service, file_path, file_name, parent_folder_id=None):
     print(f"Uploaded file with ID: {file.get('id')}")
     return file.get('id')
 
+def get_service():
+    creds = authenticate()
+    service = build('drive', 'v3', credentials=creds)
+    return service
+
 if __name__ == '__main__':
     FILE_ID = '1HNc9VMiR7GwQSC6tsBPaBD53o8kmyjVd'
     LOCAL_PATH = 'dataset.csv'
     UPLOAD_NAME = 'dataset_uploaded.csv'
 
     creds = authenticate()
-    #service = build('drive', 'v3', credentials=creds)
+    service = build('drive', 'v3', credentials=creds)
 
     #download_file(service, FILE_ID, LOCAL_PATH)
     # UPLOAD CREATES A NEW FILE
