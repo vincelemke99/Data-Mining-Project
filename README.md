@@ -50,4 +50,21 @@ python gdrive_pull_push.py
 
 The Google Drive only has 15 GB of FREE storage space. The upload function in the script can be used to NEW upload files to the drive.
 
-##### FAQ
+##### Preprocessing:
+
+###### 1. Missing Values
+
+The logic for this step is documented here: https://stuma365-my.sharepoint.com/:w:/g/personal/tpolland_students365_uni-mannheim_de/EWr0btse_ylFkzyQ4lE2ivoBXytiod6k0r9dLIvYvVZ0WA?e=QccCc8
+Affected attributes:
+
+1. Drive
+2. Model
+3. Manufacturer
+4. title_status
+5. paint_color
+6. type
+7. cylinders
+8. size
+9. transmission
+
+###### 2. Extreme Outliers/Erros

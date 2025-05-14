@@ -11,6 +11,7 @@ df_transmission = dd.read_csv('Project/data/vehicles_transmission_cleaned.csv', 
 df_type = dd.read_csv('Used-Car-Data-Mining/preprocessing/vehicles_type_imputed.csv', usecols=['id', 'type'])
 df_title_status = dd.read_csv('Used-Car-Data-Mining/preprocessing/vehicles_title_status_imputed.csv', usecols=['id', 'title_status'])
 df_paint_color = dd.read_csv('Used-Car-Data-Mining/preprocessing/vehicles_paint_color_imputed.csv', usecols=['id', 'paint_color'])
+# drive missing. when doing drive, type needs to be imputed first
 
 print('Merging files...')
 df_merged = df_main.merge(df_cylinders, on='id', how='inner')
