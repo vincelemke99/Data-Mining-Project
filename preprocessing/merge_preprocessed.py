@@ -110,13 +110,15 @@ df_train_merged = df_train_merged.merge(df_transmission, on="id", how="inner")
 print(df_train_merged.isna().sum())
 print(df_train_merged.shape)
 
-#train_df_copy = df_train_merged.copy()
-#df_size = handle_missing_values_size.impute_size(train_df_copy)
+train_df_copy = df_train_merged.copy()
+df_size = handle_missing_values_size.impute_size(train_df_copy)
 
 print("9. join size with training set, drop size column")
-#df_train_merged = df_train_merged.drop(columns=["size"], axis=1)
-#df_train_merged = df_train_merged.merge(df_size, on="id", how="inner")
+df_train_merged = df_train_merged.drop(columns=["size"], axis=1)
+df_train_merged = df_train_merged.merge(df_size, on="id", how="inner")
 
+print(df_train_merged.isna().sum())
+print(df_train_merged.shape)
 
 print("FINISHED WITH TRAINING SET")
 print("============ Preprocessing Test Split ===========")
@@ -205,12 +207,15 @@ print(df_test_merged.isna().sum())
 print(df_test_merged.shape)
 
 
-#test_df_copy = df_test_merged.copy()
-#df_size = handle_missing_values_size.impute_size(test_df_copy)
+test_df_copy = df_test_merged.copy()
+df_size = handle_missing_values_size.impute_size(test_df_copy)
 
 print("9. join size with test set, drop size column")
-#df_test_merged = df_test_merged.drop(columns=["size"], axis=1)
-#df_test_merged = df_test_merged.merge(df_size, on="id", how="inner")
+df_test_merged = df_test_merged.drop(columns=["size"], axis=1)
+df_test_merged = df_test_merged.merge(df_size, on="id", how="inner")
+
+print(df_test_merged.isna().sum())
+print(df_test_merged.shape)
 
 print("FINISHED WITH TEST SET")
 
