@@ -1,3 +1,7 @@
+# This i a cloned Respority of a Studentproject of á Data Mining Course. I wrote the Modelling parrt (see Regression Nodels).
+
+
+
 # Used-Car-Data-Mining
 
 Welcome to the Data Mining project revolving around the Craig's List-based used-car dataset. The goal of this project is to predict the price of listed vehicles.
