@@ -1,4 +1,4 @@
-# This i a cloned Respority of a Studentproject of á Data Mining Course. I wrote the Modelling parrt (see Regression Nodels).
+This is a cloned repository of a student project from a Data Mining course. I completed the modelling part (see Regression Models).
 
 
 
